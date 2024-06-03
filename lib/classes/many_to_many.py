@@ -1,7 +1,6 @@
 class Article:
     all = []
-
-    def __init__(self, author, magazine, title="title"):
+    def __init__(self, author, magazine, title= "title"):
         if not isinstance(author, Author):
             raise ValueError("Author must be of type Author")
         if not isinstance(magazine, Magazine):
@@ -15,6 +14,9 @@ class Article:
         magazine._articles.append(self)
         Article.all.append(self)
 
+    def get_title(self):
+        return self._title
+
     @property
     def title(self):
         return self._title
@@ -23,10 +25,25 @@ class Article:
     def author(self):
         return self._author
 
+    @author.setter
+    def author(self, new_author):
+        if not isinstance(new_author, Author):
+            raise ValueError("Author must be of type Author")
+        self._author._articles.remove(self)
+        self._author = new_author
+        new_author._articles.append(self)
+
     @property
     def magazine(self):
         return self._magazine
 
+    @magazine.setter
+    def magazine(self, new_magazine):
+        if not isinstance(new_magazine, Magazine):
+            raise ValueError("Magazine must be of type Magazine")
+        self._magazine._articles.remove(self)
+        self._magazine = new_magazine
+        new_magazine._articles.append(self)
 
 class Author:
     def __init__(self, name):
@@ -52,7 +69,7 @@ class Author:
 
     def topic_areas(self):
         if not self._articles:
-            return []
+            return None
         return list({article.magazine.category for article in self._articles})
 
 
@@ -66,6 +83,7 @@ class Magazine:
         self._name = name
         self._category = category
         self._articles = []
+        self._contributors = set()
 
     @property
     def name(self):
@@ -88,7 +106,9 @@ class Magazine:
         self._category = new_category
 
     def add_article(self, author, title):
-        return Article(author, self, title)
+        new_article = Article(author, self, title)
+        self._articles.append(new_article)
+        return new_article
 
     def articles(self):
         return self._articles
@@ -96,8 +116,14 @@ class Magazine:
     def contributors(self):
         return list({article.author for article in self._articles})
 
+    def titles(self):
+        return [article.title for article in self._articles]
+
     def article_titles(self):
-        return [article.title for article in self._articles] if self._articles else []
+        if not self._articles:
+            return None
+        return [article.title for article in self._articles]
+    
 
     def contributing_authors(self):
         author_article_count = {}
@@ -108,4 +134,5 @@ class Magazine:
             else:
                 author_article_count[author] = 1
 
-        return [author for author, count in author_article_count.items() if count > 2]
+        authors_with_more_than_two_articles = [author for author, count in author_article_count.items() if count > 2]
+        return authors_with_more_than_two_articles if authors_with_more_than_two_articles else None
